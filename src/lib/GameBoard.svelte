@@ -1,10 +1,15 @@
 <script>
   import { boggleGameLetters } from '../helpers/boggleGameLetters';
   import wordsStore from '../stores/wordsStore';
+  import toastStore from '../stores/toastStore';
   import ClickedLetters from './ClickedLetters.svelte';
   import GameBoardLetter from './GameBoardLetter.svelte';
+  import ToastItem from './ToastItem.svelte';
+
   let boggleGameletters = boggleGameLetters();
   let clickedLetterIndexArray = [];
+  let toastMessage;
+  let isSuccessToast;
   async function submitWord() {
     const word = clickedLettersArray.join('');
     let data;
@@ -14,10 +19,16 @@
       ).json();
     } catch (error) {
       console.error(error);
+      
+      isSuccessToast = true;
+      toastMessage = 'Keep Going ~ 🚀';
+      $toastStore.show();
     }
     if (data.message) {
-      alert(data.message);
+      toastMessage = data.message;
+      isSuccessToast = false;
       clickedLetterIndexArray = [];
+      $toastStore.show();
       return;
     }
     console.log(data);
@@ -58,6 +69,8 @@
     </button>
   </div>
 </div>
+
+<ToastItem {toastMessage} {isSuccessToast} />
 
 <style>
   .gameboard {
