@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { generateWordSearchPuzzle } from '../helpers/generateWordSearchPuzzle';
   import wordsStore from '../stores/wordsStore';
+  import toastStore from '../stores/toastStore';
   import ClickedLetters from './ClickedLetters.svelte';
   import GameBoardLetter from './GameBoardLetter.svelte';
   
@@ -33,10 +34,16 @@
       ).json();
     } catch (error) {
       console.error(error);
+      
+      isSuccessToast = true;
+      toastMessage = 'Keep Going ~ 🚀';
+      $toastStore.show();
     }
     if (data.message) {
-      alert(data.message);
+      toastMessage = data.message;
+      isSuccessToast = false;
       clickedLetterIndexArray = [];
+      $toastStore.show();
       return;
     }
     console.log(data);
@@ -141,6 +148,8 @@
     </button>
   </div>
 </div>
+
+<ToastItem {toastMessage} {isSuccessToast} />
 
 <style>
   .gameboard {
