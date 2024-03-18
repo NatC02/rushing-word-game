@@ -78,7 +78,7 @@
 
 {#if !startGame}
   <header class="mb-3">
-    <h1 class="text-center">Boggle Game</h1>
+    <h1 class="text-center">Rushing Word Game</h1>
   </header>
 {/if}
 

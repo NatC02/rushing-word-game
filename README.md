@@ -1,1 +1,1 @@
-# Rushing imprint
+# Rushing Word Game
