@@ -1,8 +1,16 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher } from "svelte";
 
-  import { BOGGLE_GAME_DEFAULT_OPTIONS } from '../utilities/constants';
-  import { removeSameWords, splitByWhitespace } from '../helpers/stringHelpers';
+  import { BOGGLE_GAME_DEFAULT_OPTIONS } from "../utilities/constants";
+  
+  
+  function removeSameWords(words) {
+    return Array.from(new Set(words));
+  }
+
+  function splitByWhitespace(words) {
+    return words.split(/\s+/);
+  }
 
   export let words;
 
@@ -13,7 +21,7 @@
   let boggleGameWords = words;
 
   function generateNewBoggleGame() {
-    dispatch('generateGame', formatWordsToWordArray(boggleGameWords));
+    dispatch("generateGame", formatWordsToWordArray(boggleGameWords));
   }
 
   function formatWordsToWordArray(words) {
