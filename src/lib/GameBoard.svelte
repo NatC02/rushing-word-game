@@ -3,67 +3,63 @@
   import { generateWordSearchPuzzle } from '../helpers/generateWordSearchPuzzle';
   import boggleGameWords from '../stores/boggleGameWords';
   import toastStore from '../stores/toastStore';
+  import gameLivesStore from '../stores/gameLives';
+  import toastItemsStore from '../stores/toastItemsStore';
+  import toastStore from '../stores/toastRefStore';
   import wordsStore from '../stores/wordsStore';
   import ClickedLetters from './ClickedLetters.svelte';
   import GameBoardLetter from './GameBoardLetter.svelte';
   import ToastItem from './ToastItem.svelte';
   const dispatch = createEventDispatcher();
-  const boggleGame = generateWordSearchPuzzle();
-  const boggleGameletters = boggleGame.data.grid
-    .reduce((acc, cur) => [...acc, ...cur], [])
-    .map((word, index) => ({
-      letter: word,
-      xCoordinate: (index % boggleGame.settings.cols) + 1,
-      yCoordinate: Math.floor(index / boggleGame.settings.cols) + 1,
-    }));
-  $boggleGameWords = boggleGame.data.words.map((word) => word.clean);
-  console.log(boggleGame);
+  let boggleGame;
   let clickedLetterIndexArray = [];
   let toastMessage;
   let isSuccessToast;
   let initialGoingDirection;
+  generateBoggleGame();
+  export function generateBoggleGame() {
+    boggleGame = generateWordSearchPuzzle();
+    $boggleGameWords = boggleGame.data.words.map((word) => word.clean);
+    console.log(boggleGame);
+  }
+
   async function submitWord() {
-    const word = clickedLettersArray.join('');
-    if (!word) {
+
+    if ($gameLivesStore === 0) {
+      $toastItemsStore.toastMessage = `GAME OVER - 😥`;
+      $toastItemsStore.isSuccessToast = false;
+      $toastStore.show();
       return;
     }
+
+    const word = clickedLettersArray.join('');
 
     if (word !== $boggleGameWords[0]) {
-      toastMessage = 'Wrong word!';
-      isSuccessToast = false;
-      clickedLetterIndexArray = [];
+      $toastItemsStore.toastMessage = 'Wrong word!';
+      $toastItemsStore.isSuccessToast = false;
       $toastStore.show();
       return;
     }
 
-    let data;
-    try {
-      data = await (
-        await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`)
-      ).json();
-    } catch (error) {
-      console.error(error);
-    }
-    if (data.message) {
-      toastMessage = data.message;
-      isSuccessToast = false;
-      clickedLetterIndexArray = [];
-      $toastStore.show();
-      return;
-    }
-    // console.log(data);
-
-    isSuccessToast = true;
-    toastMessage = 'Keep Going ~ 🚀';
+    $toastItemsStore.isSuccessToast = true;
+    $toastItemsStore.toastMessage = 'Keep Going ~ 🚀';
     $toastStore.show();
     dispatch('resetTimer');
-
     $boggleGameWords = $boggleGameWords.filter(
       (gameWord) => gameWord !== word.toUpperCase()
     );
-    dispatch('readNewWord');
 
     $wordsStore = [...$wordsStore, word];
+    
+    if ($wordsStore.length === boggleGame.data.words.length) {
+      $toastItemsStore.toastMessage = `Well Done ! 🌞`;
+      $toastItemsStore.isSuccessToast = true;
+      $toastStore.show();
+      clickedLetterIndexArray = [];
+      dispatch('resetGame');
+      return;
+    }
+    dispatch('readNewWord');
     clickedLetterIndexArray = [];
   }
   function addLetter(i) {
@@ -134,11 +130,21 @@
       xVector > 0 ? 'E' : xVector < 0 ? 'W' : ''
     }`;
   }
+  export function clearClickedLetterIndexArray() {
+    clickedLetterIndexArray = [];
+  }
   $: isClicked = (letterIndex) =>
     clickedLetterIndexArray.find((item) => item === letterIndex) !== undefined;
   $: clickedLettersArray = clickedLetterIndexArray.map(
     (clickedLetterIndex) => boggleGameletters[clickedLetterIndex].letter
   );
+  $: boggleGameletters = boggleGame.data.grid
+    .reduce((acc, cur) => [...acc, ...cur], [])
+    .map((word, index) => ({
+      letter: word,
+      xCoordinate: (index % boggleGame.settings.cols) + 1,
+      yCoordinate: Math.floor(index / boggleGame.settings.cols) + 1,
+    }));
 </script>
 <div class="d-flex flex-column align-items-center mb-3">
   <div class="gameboard mb-3">
@@ -157,7 +163,7 @@
     </button>
   </div>
 </div>
-<ToastItem {toastMessage} {isSuccessToast} />
+
 <style>
   .gameboard {
     display: grid;

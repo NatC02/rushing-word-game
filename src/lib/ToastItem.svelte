@@ -1,21 +1,17 @@
 <script>
-  import { Toast } from 'bootstrap';
   import { onMount } from 'svelte';
-
+  import { Toast } from 'bootstrap';
   import toastItemsStore from '../stores/toastItemsStore';
   import toastRefStore from '../stores/toastRefStore';
   import wordsStore from '../stores/wordsStore';
-
+  
   let toastMessage;
   let isSuccessToast;
-
   let toastLiveExample;
-
   $: {
     toastMessage = $toastItemsStore.toastMessage;
     isSuccessToast = $toastItemsStore.isSuccessToast;
   }
-
   onMount(() => {
     $toastRefStore = new Toast(toastLiveExample);
   });
@@ -40,7 +36,6 @@
         <i class="bi bi-x-circle-fill text-danger me-1" />
         <strong class="me-auto">Try Again 😥</strong>
       {/if}
-
       <button
         type="button"
         class="btn-close"
