@@ -1,7 +1,6 @@
 // If an option is missing, it will be given a default value
 
 import WordSearch from '@blex41/word-search/dist/wordsearch.min.js';
-import { getWordsFromGSheet } from '../api/getWordsFromGSheet';
 
 const defaultOptions = {
   cols: 4,
