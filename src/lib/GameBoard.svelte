@@ -1,11 +1,12 @@
 <script>
-  import { onMount } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
   import { generateWordSearchPuzzle } from '../helpers/generateWordSearchPuzzle';
   import wordsStore from '../stores/wordsStore';
   import toastStore from '../stores/toastStore';
   import ClickedLetters from './ClickedLetters.svelte';
   import GameBoardLetter from './GameBoardLetter.svelte';
-  
+  import ToastItem from './ToastItem.svelte';
+  const dispatch = createEventDispatcher();
   const boggleGame = generateWordSearchPuzzle();
   const boggleGameletters = boggleGame.data.grid
     .reduce((acc, cur) => [...acc, ...cur], [])
@@ -15,15 +16,12 @@
       yCoordinate: Math.floor(index / boggleGame.settings.cols) + 1,
     }));
   console.log(boggleGame);
-  
   let clickedLetterIndexArray = [];
   let toastMessage;
   let isSuccessToast;
   let initialGoingDirection;
-
   async function submitWord() {
     const word = clickedLettersArray.join('');
-
     if (!word) {
       return;
     }
@@ -34,10 +32,6 @@
       ).json();
     } catch (error) {
       console.error(error);
-      
-      isSuccessToast = true;
-      toastMessage = 'Keep Going ~ 🚀';
-      $toastStore.show();
     }
     if (data.message) {
       toastMessage = data.message;
@@ -47,15 +41,17 @@
       return;
     }
     console.log(data);
+    isSuccessToast = true;
+    toastMessage = 'Keep Going ~ 🚀';
+    $toastStore.show();
+    dispatch('resetTimer');
     $wordsStore = [...$wordsStore, word];
     clickedLetterIndexArray = [];
   }
-
   function addLetter(i) {
     if (clickedLetterIndexArray.length >= 4) {
       return;
     }
-
     if (!canClick(i)) {
       return;
     }
@@ -65,10 +61,8 @@
         boggleGameletters[i]
       );
     }
-
     clickedLetterIndexArray = [...clickedLetterIndexArray, i];
   }
-
   function canClick(i) {
     //  first click always can click
     if (clickedLetterIndexArray.length === 0) {
@@ -122,14 +116,12 @@
       xVector > 0 ? 'E' : xVector < 0 ? 'W' : ''
     }`;
   }
-
   $: isClicked = (letterIndex) =>
     clickedLetterIndexArray.find((item) => item === letterIndex) !== undefined;
   $: clickedLettersArray = clickedLetterIndexArray.map(
     (clickedLetterIndex) => boggleGameletters[clickedLetterIndex].letter
   );
 </script>
-
 <div class="d-flex flex-column align-items-center mb-3">
   <div class="gameboard mb-3">
     {#each boggleGameletters as letterObject, i (`${letterObject}${i}`)}
@@ -140,7 +132,6 @@
       />
     {/each}
   </div>
-
   <div class="d-flex justify-content-center align-items-center gap-2 gap-sm-3">
     <ClickedLetters {clickedLettersArray} />
     <button type="button" class="btn btn-primary btn-lg" on:click={submitWord}>
@@ -148,9 +139,7 @@
     </button>
   </div>
 </div>
-
 <ToastItem {toastMessage} {isSuccessToast} />
-
 <style>
   .gameboard {
     display: grid;
